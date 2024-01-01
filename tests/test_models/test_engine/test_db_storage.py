@@ -66,7 +66,48 @@ test_db_storage.py'])
                              "{:s} method needs a docstring".format(func[0]))
             self.assertTrue(len(func[1].__doc__) >= 1,
                             "{:s} method needs a docstring".format(func[0]))
+    def test_all_method(self):
+        """Test the 'all' method of DBStorage."""
+        # Add an instance of a class to the database
+        with patch('sys.stdout', new_callable=io.StringIO) as mock_stdout:
+            HBNBCommand().onecmd("create BaseModel")
+            instance_id = mock_stdout.getvalue().strip()
 
+        # Test the 'all' method to check if the instance is present
+        with patch('sys.stdout', new_callable=io.StringIO) as mock_stdout:
+            HBNBCommand().onecmd("all BaseModel")
+            output = mock_stdout.getvalue().strip()
+            self.assertIn(instance_id, output)
+
+    def test_new_method(self):
+        """Test the 'new' method of DBStorage."""
+        # Add a new instance to the database using the 'new' method
+        new_instance = BaseModel()
+        models.storage.new(new_instance)
+        models.storage.save()
+
+        # Retrieve the instance from the database and check its existence
+        with patch('sys.stdout', new_callable=io.StringIO) as mock_stdout:
+            HBNBCommand().onecmd(f"show BaseModel {new_instance.id}")
+            output = mock_stdout.getvalue().strip()
+            self.assertIn(str(new_instance), output)
+
+    def test_delete_method(self):
+        """Test the 'delete' method of DBStorage."""
+        # Add an instance to the database
+        with patch('sys.stdout', new_callable=io.StringIO) as mock_stdout:
+            HBNBCommand().onecmd("create BaseModel")
+            instance_id = mock_stdout.getvalue().strip()
+
+        # Delete the instance using the 'delete' method
+        with patch('sys.stdout', new_callable=io.StringIO) as mock_stdout:
+            HBNBCommand().onecmd(f"destroy BaseModel {instance_id}")
+
+        # Try to show the deleted instance and check if it's not found
+        with patch('sys.stdout', new_callable=io.StringIO) as mock_stdout:
+            HBNBCommand().onecmd(f"show BaseModel {instance_id}")
+            output = mock_stdout.getvalue().strip()
+            self.assertEqual(output, "** no instance found **")
 
 class TestFileStorage(unittest.TestCase):
     """Test the FileStorage class"""

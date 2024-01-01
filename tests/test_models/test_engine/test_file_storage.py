@@ -113,3 +113,40 @@ class TestFileStorage(unittest.TestCase):
         with open("file.json", "r") as f:
             js = f.read()
         self.assertEqual(json.loads(string), json.loads(js))
+
+     @unittest.skipIf(models.storage_t == 'db', "not testing file storage")
+    def test_all_with_class(self):
+        """Test that all returns instances of a specific class"""
+        storage = FileStorage()
+        instance = BaseModel()
+        storage.new(instance)
+        storage.save()
+        all_instances = storage.all(BaseModel)
+        self.assertIn(instance, all_instances.values())
+
+    @unittest.skipIf(models.storage_t == 'db', "not testing file storage")
+    def test_all_no_class(self):
+        """Test that all returns all instances when no class is passed"""
+        storage = FileStorage()
+        instance = BaseModel()
+        storage.new(instance)
+        storage.save()
+        all_instances = storage.all()
+        self.assertIn(instance, all_instances.values())
+
+    @unittest.skipIf(models.storage_t == 'db', "not testing file storage")
+    def test_delete_method(self):
+        """Test the 'delete' method of FileStorage."""
+        storage = FileStorage()
+        instance = BaseModel()
+        storage.new(instance)
+        storage.save()
+
+        # Delete the instance using the 'delete' method
+        storage.delete(instance)
+
+        # Try to show the deleted instance and check if it's not found
+        all_instances = storage.all(BaseModel)
+        self.assertNotIn(instance, all_instances.values())
+
+    # Add more test cases as needed based on your specific functionalities.
