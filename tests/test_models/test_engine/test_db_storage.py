@@ -16,8 +16,11 @@ from models.state import State
 from models.user import User
 import json
 import os
+import io
 import pep8
 import unittest
+from unittest.mock import patch
+from console import HBNBCommand
 DBStorage = db_storage.DBStorage
 classes = {"Amenity": Amenity, "City": City, "Place": Place,
            "Review": Review, "State": State, "User": User}
@@ -40,10 +43,13 @@ class TestDBStorageDocs(unittest.TestCase):
     def test_pep8_conformance_test_db_storage(self):
         """Test tests/test_models/test_db_storage.py conforms to PEP8."""
         pep8s = pep8.StyleGuide(quiet=True)
-        result = pep8s.check_files(['tests/test_models/test_engine/\
-test_db_storage.py'])
-        self.assertEqual(result.total_errors, 0,
-                         "Found code style errors (and warnings).")
+        result = pep8s.check_files([
+            'tests/test_models/test_engine/test_db_storage.py'
+        ])
+        self.assertEqual(
+            result.total_errors, 0,
+            "Found code style errors (and warnings)."
+        )
 
     def test_db_storage_module_docstring(self):
         """Test for the db_storage.py module docstring"""
@@ -66,6 +72,7 @@ test_db_storage.py'])
                              "{:s} method needs a docstring".format(func[0]))
             self.assertTrue(len(func[1].__doc__) >= 1,
                             "{:s} method needs a docstring".format(func[0]))
+
     def test_all_method(self):
         """Test the 'all' method of DBStorage."""
         # Add an instance of a class to the database
@@ -108,6 +115,7 @@ test_db_storage.py'])
             HBNBCommand().onecmd(f"show BaseModel {instance_id}")
             output = mock_stdout.getvalue().strip()
             self.assertEqual(output, "** no instance found **")
+
 
 class TestFileStorage(unittest.TestCase):
     """Test the FileStorage class"""
