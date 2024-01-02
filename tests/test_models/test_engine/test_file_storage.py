@@ -67,6 +67,50 @@ test_file_storage.py'])
             self.assertTrue(len(func[1].__doc__) >= 1,
                             "{:s} method needs a docstring".format(func[0]))
 
+    @unittest.skipIf(models.storage_t == 'db', "not testing file storage")
+    def test_get_method(self):
+        """Test the 'get' method of FileStorage."""
+        storage = FileStorage()
+
+        # Create an instance and add it to FileStorage
+        new_user = User()
+        storage.new(new_user)
+        storage.save()
+
+        # Retrieve the instance using the 'get' method
+        retrieved_user = storage.get(User, new_user.id)
+
+        # Check if the retrieved instance matches the original one
+        self.assertEqual(retrieved_user, new_user)
+
+        # Try to retrieve a non-existent instance and check if it returns None
+        non_existent_user = storage.get(User, "non_existent_id")
+        self.assertIsNone(non_existent_user)
+
+    @unittest.skipIf(models.storage_t == 'db', "not testing file storage")
+    def test_count_method(self):
+        """Test the 'count' method of FileStorage."""
+        storage = FileStorage()
+
+        # Create multiple instances for different classes and add them to FileStorage
+        new_user1 = User()
+        new_user2 = User()
+        new_review = Review()
+        new_place = Place()
+        storage.new(new_user1)
+        storage.new(new_user2)
+        storage.new(new_review)
+        storage.new(new_place)
+        storage.save()
+
+        # Count the number of instances for a specific class
+        user_count = storage.count(User)
+        self.assertEqual(user_count, 2)
+
+        # Count the total number of instances in storage
+        total_count = storage.count()
+        self.assertEqual(total_count, 4)
+
 
 class TestFileStorage(unittest.TestCase):
     """Test the FileStorage class"""

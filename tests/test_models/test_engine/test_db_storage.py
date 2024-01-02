@@ -116,6 +116,46 @@ class TestDBStorageDocs(unittest.TestCase):
             output = mock_stdout.getvalue().strip()
             self.assertEqual(output, "** no instance found **")
 
+    @unittest.skipIf(models.storage_t != 'db', "not testing db storage")
+    def test_get_method(self):
+        """Test the 'get' method of DBStorage."""
+        # Create an instance and add it to the database
+        new_user = User()
+        models.storage.new(new_user)
+        models.storage.save()
+
+        # Retrieve the instance using the 'get' method
+        retrieved_user = models.storage.get(User, new_user.id)
+
+        # Check if the retrieved instance matches the original one
+        self.assertEqual(retrieved_user, new_user)
+
+        # Try to retrieve a non-existent instance and check if it returns None
+        non_existent_user = models.storage.get(User, "non_existent_id")
+        self.assertIsNone(non_existent_user)
+    
+    @unittest.skipIf(models.storage_t != 'db', "not testing db storage")
+    def test_count_method(self):
+        """Test the 'count' method of DBStorage."""
+        # Create multiple instances for different classes and add them to the database
+        new_user1 = User()
+        new_user2 = User()
+        new_review = Review()
+        new_place = Place()
+        models.storage.new(new_user1)
+        models.storage.new(new_user2)
+        models.storage.new(new_review)
+        models.storage.new(new_place)
+        models.storage.save()
+
+        # Count the number of instances for a specific class
+        user_count = models.storage.count(User)
+        self.assertEqual(user_count, 2)
+
+        # Count the total number of instances in storage
+        total_count = models.storage.count()
+        self.assertEqual(total_count, 4)
+
 
 class TestFileStorage(unittest.TestCase):
     """Test the FileStorage class"""
