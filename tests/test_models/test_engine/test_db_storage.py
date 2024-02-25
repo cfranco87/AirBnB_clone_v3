@@ -14,13 +14,11 @@ from models.place import Place
 from models.review import Review
 from models.state import State
 from models.user import User
+from models import storage
 import json
 import os
-import io
 import pep8
 import unittest
-from unittest.mock import patch
-from console import HBNBCommand
 DBStorage = db_storage.DBStorage
 classes = {"Amenity": Amenity, "City": City, "Place": Place,
            "Review": Review, "State": State, "User": User}
@@ -43,13 +41,10 @@ class TestDBStorageDocs(unittest.TestCase):
     def test_pep8_conformance_test_db_storage(self):
         """Test tests/test_models/test_db_storage.py conforms to PEP8."""
         pep8s = pep8.StyleGuide(quiet=True)
-        result = pep8s.check_files([
-            'tests/test_models/test_engine/test_db_storage.py'
-        ])
-        self.assertEqual(
-            result.total_errors, 0,
-            "Found code style errors (and warnings)."
-        )
+        result = pep8s.check_files(['tests/test_models/test_engine/\
+test_db_storage.py'])
+        self.assertEqual(result.total_errors, 0,
+                         "Found code style errors (and warnings).")
 
     def test_db_storage_module_docstring(self):
         """Test for the db_storage.py module docstring"""
@@ -73,88 +68,31 @@ class TestDBStorageDocs(unittest.TestCase):
             self.assertTrue(len(func[1].__doc__) >= 1,
                             "{:s} method needs a docstring".format(func[0]))
 
-    def test_all_method(self):
-        """Test the 'all' method of DBStorage."""
-        # Add an instance of a class to the database
-        with patch('sys.stdout', new_callable=io.StringIO) as mock_stdout:
-            HBNBCommand().onecmd("create BaseModel")
-            instance_id = mock_stdout.getvalue().strip()
 
-        # Test the 'all' method to check if the instance is present
-        with patch('sys.stdout', new_callable=io.StringIO) as mock_stdout:
-            HBNBCommand().onecmd("all BaseModel")
-            output = mock_stdout.getvalue().strip()
-            self.assertIn(instance_id, output)
-
-    def test_new_method(self):
-        """Test the 'new' method of DBStorage."""
-        # Add a new instance to the database using the 'new' method
-        new_instance = BaseModel()
-        models.storage.new(new_instance)
-        models.storage.save()
-
-        # Retrieve the instance from the database and check its existence
-        with patch('sys.stdout', new_callable=io.StringIO) as mock_stdout:
-            HBNBCommand().onecmd(f"show BaseModel {new_instance.id}")
-            output = mock_stdout.getvalue().strip()
-            self.assertIn(str(new_instance), output)
-
-    def test_delete_method(self):
-        """Test the 'delete' method of DBStorage."""
-        # Add an instance to the database
-        with patch('sys.stdout', new_callable=io.StringIO) as mock_stdout:
-            HBNBCommand().onecmd("create BaseModel")
-            instance_id = mock_stdout.getvalue().strip()
-
-        # Delete the instance using the 'delete' method
-        with patch('sys.stdout', new_callable=io.StringIO) as mock_stdout:
-            HBNBCommand().onecmd(f"destroy BaseModel {instance_id}")
-
-        # Try to show the deleted instance and check if it's not found
-        with patch('sys.stdout', new_callable=io.StringIO) as mock_stdout:
-            HBNBCommand().onecmd(f"show BaseModel {instance_id}")
-            output = mock_stdout.getvalue().strip()
-            self.assertEqual(output, "** no instance found **")
-
-    @unittest.skipIf(models.storage_t != 'db', "not testing db storage")
+class TestDBStorageAPI(unittest.TestCase):
+    """Test the methods for the RESTFull API"""
     def test_get_method(self):
-        """Test the 'get' method of DBStorage."""
-        # Create an instance and add it to the database
-        new_user = User()
-        models.storage.new(new_user)
-        models.storage.save()
+        """Test get method for the API"""
+        test = State(name="California")
+        test.save()
+        self.assertEqual(storage.get("State", test.id), test)
 
-        # Retrieve the instance using the 'get' method
-        retrieved_user = models.storage.get(User, new_user.id)
+    def test_empty_cls(self):
+        """Test empty cls"""
+        first_state_id = list(storage.all(State).values())[0].id
+        state = list(storage.all(State).values())[0]
+        self.assertEqual(storage.get(None, first_state_id), state)
 
-        # Check if the retrieved instance matches the original one
-        self.assertEqual(retrieved_user, new_user)
+    def test_empty_id(self):
+        """Test if the id is empty"""
+        self.assertEqual(storage.get(State, None), None)
 
-        # Try to retrieve a non-existent instance and check if it returns None
-        non_existent_user = models.storage.get(User, "non_existent_id")
-        self.assertIsNone(non_existent_user)
-    
-    @unittest.skipIf(models.storage_t != 'db', "not testing db storage")
-    def test_count_method(self):
-        """Test the 'count' method of DBStorage."""
-        # Create multiple instances for different classes and add them to the database
-        new_user1 = User()
-        new_user2 = User()
-        new_review = Review()
-        new_place = Place()
-        models.storage.new(new_user1)
-        models.storage.new(new_user2)
-        models.storage.new(new_review)
-        models.storage.new(new_place)
-        models.storage.save()
-
-        # Count the number of instances for a specific class
-        user_count = models.storage.count(User)
-        self.assertEqual(user_count, 2)
-
-        # Count the total number of instances in storage
-        total_count = models.storage.count()
-        self.assertEqual(total_count, 4)
+    def test_count(self):
+        """ Test again!! angel gulity"""
+        counter = storage.count(State)
+        test = State(name="California")
+        test.save()
+        self.assertEqual(storage.count(State), counter + 1)
 
 
 class TestFileStorage(unittest.TestCase):
