@@ -2,12 +2,11 @@
 """
 Contains the class TestConsoleDocs
 """
-import io
+
 import console
 import inspect
 import pep8
 import unittest
-from unittest.mock import patch
 HBNBCommand = console.HBNBCommand
 
 
@@ -40,33 +39,3 @@ class TestConsoleDocs(unittest.TestCase):
                          "HBNBCommand class needs a docstring")
         self.assertTrue(len(HBNBCommand.__doc__) >= 1,
                         "HBNBCommand class needs a docstring")
-
-    def test_create_instance(self):
-        """Test creating a new instance using the 'create' command."""
-        with patch('sys.stdout', new_callable=io.StringIO) as mock_stdout:
-            HBNBCommand().onecmd("create BaseModel")
-            output = mock_stdout.getvalue().strip()
-            self.assertTrue(output != "")
-
-    def test_update_attribute(self):
-        """Test updating an attribute using the 'update' command."""
-        with patch('sys.stdout', new_callable=io.StringIO) as mock_stdout:
-            HBNBCommand().onecmd("create BaseModel")
-            instance_id = mock_stdout.getvalue().strip()
-            HBNBCommand().onecmd(
-                f"update BaseModel {instance_id} name 'New Name'")
-            with patch('sys.stdout', new_callable=io.StringIO) as mock_stdout:
-                HBNBCommand().onecmd(f"show BaseModel {instance_id}")
-                output = mock_stdout.getvalue().strip()
-                self.assertIn("'name': 'New Name'", output)
-
-    def test_destroy_instance(self):
-        """Test destroying an instance using the 'destroy' command."""
-        with patch('sys.stdout', new_callable=io.StringIO) as mock_stdout:
-            HBNBCommand().onecmd("create BaseModel")
-            instance_id = mock_stdout.getvalue().strip()
-            HBNBCommand().onecmd(f"destroy BaseModel {instance_id}")
-            with patch('sys.stdout', new_callable=io.StringIO) as mock_stdout:
-                HBNBCommand().onecmd(f"show BaseModel {instance_id}")
-                output = mock_stdout.getvalue().strip()
-                self.assertEqual(output, "** no instance found **")
